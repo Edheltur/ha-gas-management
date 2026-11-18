@@ -8,6 +8,7 @@ from homeassistant.config_entries import SOURCE_USER, ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID, CONF_NAME, STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.translation import async_get_translations
@@ -67,6 +68,26 @@ async def test_blank_name(hass: HomeAssistant) -> None:
     )
     assert result["type"] is FlowResultType.FORM
     assert result["errors"] == {CONF_NAME: "empty_name"}
+    fields = probatio.to_field_list(result["data_schema"], custom_serializer=cv.custom_serializer)
+    suggestions = {field["name"]: field["description"]["suggested_value"] for field in fields}
+    assert suggestions == {CONF_NAME: " ", TARE_MASS: 4.0, NOMINAL_FILL_MASS: 1.0}
+
+
+async def test_localized_setup_form_with_suggested_masses(hass: HomeAssistant) -> None:
+    """Serve the translated setup fields and initial values on the first form."""
+    form = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+    fields = probatio.to_field_list(form["data_schema"], custom_serializer=cv.custom_serializer)
+    fields_by_name = {field["name"]: field for field in fields}
+    assert set(fields_by_name) == {CONF_NAME, TARE_MASS, NOMINAL_FILL_MASS}
+    assert fields_by_name[TARE_MASS]["description"]["suggested_value"] == 8.5
+    assert fields_by_name[NOMINAL_FILL_MASS]["description"]["suggested_value"] == 3.0
+
+    for language in ("ru", "en"):
+        translations = await async_get_translations(hass, language, "config", {DOMAIN})
+        prefix = f"component.{DOMAIN}.config.step.user."
+        for name in fields_by_name:
+            assert translations[f"{prefix}data.{name}"] != name
+            assert translations[f"{prefix}data_description.{name}"]
 
 
 @pytest.mark.parametrize("key", [TARE_MASS, NOMINAL_FILL_MASS])

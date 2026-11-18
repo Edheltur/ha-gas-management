@@ -31,6 +31,7 @@ SETUP_SCHEMA = probatio.Schema(
         probatio.Required(NOMINAL_FILL_MASS): MASS_SELECTOR,
     }
 )
+TYPICAL_CO2_CYLINDER_5L = {TARE_MASS: 8.5, NOMINAL_FILL_MASS: 3.0}
 
 
 class GasManagementConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -59,6 +60,8 @@ class GasManagementConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=self.add_suggested_values_to_schema(SETUP_SCHEMA, user_input),
+            data_schema=self.add_suggested_values_to_schema(
+                SETUP_SCHEMA, TYPICAL_CO2_CYLINDER_5L if user_input is None else user_input
+            ),
             errors=errors,
         )
