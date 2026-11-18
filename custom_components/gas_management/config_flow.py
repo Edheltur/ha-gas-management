@@ -7,7 +7,7 @@ from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_NAME
 from homeassistant.helpers.selector import NumberSelector, NumberSelectorConfig, NumberSelectorMode
 
-from .calculation import mass_kg
+from .calculation import normalize_mass_kg
 from .const import (
     CONFIGURED_MASS_KEYS,
     DOMAIN,
@@ -35,8 +35,8 @@ class GasManagementConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 2
 
-    def _suggest_cylinder_name(self) -> str:
-        """Suggest an unused name, treating both spellings as the same name."""
+    def _generate_default_name(self) -> str:
+        """Generate a default name, counting both spellings as the same name."""
         russian = self.hass.config.language == "ru"
         used = {entry.title.strip().casefold() for entry in self._async_current_entries()}
         available = [
@@ -62,9 +62,9 @@ class GasManagementConfigFlow(ConfigFlow, domain=DOMAIN):
             name = str(user_input[CONF_NAME]).strip()
             if not name:
                 errors[CONF_NAME] = "empty_name"
-            data: dict[str, str | float] = {CONF_NAME: name}
+            data: dict[str, float] = {}
             for key in CONFIGURED_MASS_KEYS:
-                value = mass_kg(user_input[key])
+                value = normalize_mass_kg(user_input[key])
                 if value is None or value <= 0:
                     errors[key] = "invalid_mass"
                 else:
@@ -74,7 +74,7 @@ class GasManagementConfigFlow(ConfigFlow, domain=DOMAIN):
 
         name_field = probatio.Required(CONF_NAME)
         if user_input is None:
-            name_field = probatio.Required(CONF_NAME, default=self._suggest_cylinder_name())
+            name_field = probatio.Required(CONF_NAME, default=self._generate_default_name())
         schema = probatio.Schema(
             {
                 name_field: str,

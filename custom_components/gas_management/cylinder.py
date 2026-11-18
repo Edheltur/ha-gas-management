@@ -8,8 +8,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
 
-from .calculation import mass_kg
-from .const import DOMAIN, EDITABLE_MASS_KEYS, GAS_CO2
+from .calculation import normalize_mass_kg
+from .const import ASSEMBLY_MASS, DOMAIN, EDITABLE_MASS_KEYS, EQUIPMENT_MASS, GAS_CO2
 
 STORAGE_VERSION = 1
 
@@ -47,12 +47,14 @@ class Cylinder:
             self._readings = {
                 key: value
                 for key in EDITABLE_MASS_KEYS
-                if (value := mass_kg(data.get(key))) is not None
+                if (value := normalize_mass_kg(data.get(key))) is not None
             }
 
-    async def async_set_mass(self, key: str, value: float) -> None:
+    async def async_set_reading(self, key: str, value: float) -> None:
         """Persist an edit and notify entities after the write."""
-        mass = mass_kg(value)
+        if key not in EDITABLE_MASS_KEYS:
+            raise ValueError(f"Unknown reading key: {key}")
+        mass = normalize_mass_kg(value)
         if mass is None:
             raise HomeAssistantError("Mass must be a finite value from 0 to 1000 kg")
 
@@ -62,12 +64,14 @@ class Cylinder:
             if self._readings.get(key) == mass:
                 return
             updated = {**self._readings, key: mass}
+            if key == EQUIPMENT_MASS and key in self._readings:
+                updated.pop(ASSEMBLY_MASS, None)
             await self._store.async_save(updated)
             # Home Assistant's Store logs certain write errors instead of raising them.
             if await self._store.async_load() != updated:
                 raise HomeAssistantError("Could not save the cylinder measurements")
             self._readings = updated
-            async_dispatcher_send(self.hass, self.signal, key)
+            async_dispatcher_send(self.hass, self.signal)
 
     async def async_close(self) -> None:
         """Drain pending writes before allowing reload or removal."""

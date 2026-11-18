@@ -1,4 +1,4 @@
-"""Names suggested for new cylinders."""
+"""Default names for new cylinders."""
 
 DREADNOUGHT_NAMES = {
     "bjorn": "Бьорн",

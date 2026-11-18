@@ -24,13 +24,6 @@ from custom_components.gas_management.const import (
 )
 from custom_components.gas_management.cylinder import cylinder_store
 
-pytestmark = pytest.mark.usefixtures("enable_custom_integrations")
-
-
-@pytest.fixture
-def hass_storage() -> None:
-    """Use real storage in the Home Assistant fixture's temporary config directory."""
-
 
 async def add_cylinder(hass: HomeAssistant, name: str) -> ConfigEntry:
     """Create a real config entry using the user flow."""
@@ -164,6 +157,29 @@ async def test_weighing_controls_and_icons(hass: HomeAssistant) -> None:
         assert state.attributes["device_class"] == "weight"
 
 
+async def test_reload_uses_entry_title(hass: HomeAssistant) -> None:
+    entry = await add_cylinder(hass, "Бьорн")
+    assert CONF_NAME not in entry.data
+    hass.config_entries.async_update_entry(entry, title="Ромашка")
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    device = dr.async_get(hass).async_get_device_by_identifier(
+        (DOMAIN, entry.entry_id), entry.entry_id
+    )
+    assert device.name == "Ромашка"
+
+
+@pytest.mark.parametrize("key", [TARE_MASS, NOMINAL_FILL_MASS, "other"])
+async def test_reject_non_reading_keys(hass: HomeAssistant, key: str) -> None:
+    entry = await add_cylinder(hass, "Бьорн")
+    cylinder = entry.runtime_data
+    before = cylinder.masses.copy()
+    with pytest.raises(ValueError, match="Unknown reading key"):
+        await cylinder.async_set_reading(key, 9)
+    assert cylinder.masses == before
+    assert await cylinder_store(hass, entry.entry_id).async_load() is None
+
+
 async def test_calculate_from_manual_edits(hass: HomeAssistant) -> None:
     """Edit masses independently and recalculate only from valid input."""
     entry = await add_cylinder(hass, "Keg CO2")
@@ -188,8 +204,35 @@ async def test_calculate_from_manual_edits(hass: HomeAssistant) -> None:
     assert hass.states.get(fill).state == STATE_UNAVAILABLE
 
     await set_mass(hass, entry, EQUIPMENT_MASS, 0)
+    await set_mass(hass, entry, ASSEMBLY_MASS, 4.2)
     assert float(hass.states.get(remaining).state) == 200
     assert float(hass.states.get(fill).state) == 20
+
+
+async def test_equipment_change_requires_new_weighing(hass: HomeAssistant) -> None:
+    entry = await add_cylinder(hass, "CO2")
+    gross = entity_id(hass, entry, "number", ASSEMBLY_MASS)
+    remaining = entity_id(hass, entry, "sensor", "gas_remaining")
+    fill = entity_id(hass, entry, "sensor", "fill_level")
+
+    await set_mass(hass, entry, ASSEMBLY_MASS, 5.8)
+    await set_mass(hass, entry, EQUIPMENT_MASS, 0.3)
+    await set_mass(hass, entry, EQUIPMENT_MASS, 0.3)
+    assert float(hass.states.get(remaining).state) == 1500
+
+    await set_mass(hass, entry, EQUIPMENT_MASS, 0.5)
+    assert hass.states.get(gross).state == STATE_UNKNOWN
+    assert hass.states.get(remaining).state == STATE_UNAVAILABLE
+    assert hass.states.get(fill).state == STATE_UNAVAILABLE
+    assert await cylinder_store(hass, entry.entry_id).async_load() == {EQUIPMENT_MASS: 0.5}
+
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert hass.states.get(gross).state == STATE_UNKNOWN
+    assert hass.states.get(remaining).state == STATE_UNAVAILABLE
+    await set_mass(hass, entry, ASSEMBLY_MASS, 5.8)
+    assert float(hass.states.get(remaining).state) == 1300
+    assert float(hass.states.get(fill).state) == 130
 
 
 async def test_storage_reload_and_removal(hass: HomeAssistant) -> None:

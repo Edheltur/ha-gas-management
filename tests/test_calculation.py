@@ -4,7 +4,11 @@ from copy import copy
 
 import pytest
 
-from custom_components.gas_management.calculation import fill_pct, gas_remaining_g, mass_kg
+from custom_components.gas_management.calculation import (
+    fill_pct,
+    gas_remaining_g,
+    normalize_mass_kg,
+)
 from custom_components.gas_management.const import (
     ASSEMBLY_MASS,
     EQUIPMENT_MASS,
@@ -45,9 +49,9 @@ def test_over_nominal_fill() -> None:
 @pytest.mark.parametrize("value", [None, "1", True, float("nan"), float("inf"), -1, 1001])
 def test_invalid_mass(value: object) -> None:
     """A missing or invalid stored mass never enters a calculation."""
-    assert mass_kg(value) is None
+    assert normalize_mass_kg(value) is None
 
 
 def test_mass_precision() -> None:
     """Measurements are stored to one gram."""
-    assert mass_kg(1.2346) == 1.235
+    assert normalize_mass_kg(1.2346) == 1.235

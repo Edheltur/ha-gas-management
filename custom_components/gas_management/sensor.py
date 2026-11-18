@@ -53,7 +53,7 @@ class CylinderSensor(SensorEntity):
         self._update_value()
 
     @callback
-    def _async_mass_changed(self, key: str) -> None:
+    def _async_mass_changed(self) -> None:
         self._update_value()
         self.async_write_ha_state()
 
@@ -68,7 +68,6 @@ class RemainingGasSensor(CylinderSensor):
     _attr_suggested_display_precision = 0
 
     def __init__(self, entry: GasManagementConfigEntry) -> None:
-        """Set up a remaining mass sensor."""
         super().__init__(entry, gas_remaining_g)
 
 
@@ -80,5 +79,4 @@ class FillLevelSensor(CylinderSensor):
     _attr_suggested_display_precision = 1
 
     def __init__(self, entry: GasManagementConfigEntry) -> None:
-        """Set up a fill level sensor."""
         super().__init__(entry, fill_pct)

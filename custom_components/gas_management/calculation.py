@@ -7,8 +7,8 @@ from math import isfinite
 from .const import ASSEMBLY_MASS, EQUIPMENT_MASS, MAX_MASS_KG, NOMINAL_FILL_MASS, TARE_MASS
 
 
-def mass_kg(value: object) -> float | None:
-    """Validate a mass and store it to gram precision."""
+def normalize_mass_kg(value: object) -> float | None:
+    """Return a valid mass rounded to the nearest gram, or None."""
     if type(value) not in (int, float):
         return None
     if not 0 <= value <= MAX_MASS_KG or not isfinite(value):

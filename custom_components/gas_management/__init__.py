@@ -1,7 +1,7 @@
 """Track gas in individually configured Home Assistant devices."""
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_NAME, Platform
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
 from .const import CONFIGURED_MASS_KEYS
@@ -16,7 +16,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: GasManagementConfigEntry
     cylinder = Cylinder(
         hass,
         entry.entry_id,
-        entry.data[CONF_NAME],
+        entry.title,
         {key: entry.data[key] for key in CONFIGURED_MASS_KEYS},
     )
     await cylinder.async_load()
