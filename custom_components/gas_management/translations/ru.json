@@ -10,10 +10,10 @@
   },
   "entity": {
     "number": {
-      "tare_mass": {"name": "Масса пустого баллона"},
-      "equipment_mass": {"name": "Масса установленного оборудования"},
-      "assembly_mass": {"name": "Текущая масса сборки"},
-      "nominal_fill_mass": {"name": "Номинальная масса заправки"}
+      "tare_mass": {"name": "Баллон"},
+      "equipment_mass": {"name": "Оснастка"},
+      "assembly_mass": {"name": "Сборка"},
+      "nominal_fill_mass": {"name": "Номинал"}
     },
     "sensor": {
       "gas_remaining": {"name": "Остаток газа"},

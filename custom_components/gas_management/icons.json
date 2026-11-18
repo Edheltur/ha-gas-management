@@ -1,0 +1,10 @@
+{
+  "entity": {
+    "number": {
+      "tare_mass": {"default": "mdi:gas-cylinder"},
+      "equipment_mass": {"default": "mdi:gauge"},
+      "assembly_mass": {"default": "mdi:weight"},
+      "nominal_fill_mass": {"default": "mdi:target"}
+    }
+  }
+}

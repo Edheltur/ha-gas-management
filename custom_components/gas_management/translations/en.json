@@ -10,10 +10,10 @@
   },
   "entity": {
     "number": {
-      "tare_mass": {"name": "Empty cylinder mass"},
-      "equipment_mass": {"name": "Attached equipment mass"},
-      "assembly_mass": {"name": "Current assembly mass"},
-      "nominal_fill_mass": {"name": "Nominal fill mass"}
+      "tare_mass": {"name": "Empty cylinder"},
+      "equipment_mass": {"name": "Equipment"},
+      "assembly_mass": {"name": "Assembly"},
+      "nominal_fill_mass": {"name": "Nominal fill"}
     },
     "sensor": {
       "gas_remaining": {"name": "Gas remaining"},

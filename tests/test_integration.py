@@ -9,6 +9,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.icon import async_get_icons
+from homeassistant.helpers.translation import async_get_translations
 
 from custom_components.gas_management.const import (
     ASSEMBLY_MASS,
@@ -62,6 +64,45 @@ async def test_blank_name(hass: HomeAssistant) -> None:
     result = await hass.config_entries.flow.async_configure(form["flow_id"], {CONF_NAME: " "})
     assert result["type"] is FlowResultType.FORM
     assert result["errors"] == {CONF_NAME: "empty_name"}
+
+
+async def test_compact_labels_and_icons_for_existing_entity(hass: HomeAssistant) -> None:
+    """Apply the new defaults without changing an existing entity ID."""
+    entry = await add_cylinder(hass, "CO2")
+    registry = er.async_get(hass)
+    current_id = entity_id(hass, entry, "number", TARE_MASS)
+    assert current_id == "number.co2_empty_cylinder"
+    await hass.config_entries.async_unload(entry.entry_id)
+    old_id = "number.co2_empty_cylinder_mass"
+    registry.async_update_entity(
+        current_id, new_entity_id=old_id, original_name="Empty cylinder mass"
+    )
+
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entity_id(hass, entry, "number", TARE_MASS) == old_id
+    updated = registry.async_get(old_id)
+    assert updated is not None
+    assert updated.original_name == "Empty cylinder"
+    assert updated.translation_key == TARE_MASS
+
+    russian = await async_get_translations(hass, "ru", "entity", {DOMAIN})
+    labels = {
+        TARE_MASS: "Баллон",
+        EQUIPMENT_MASS: "Оснастка",
+        NOMINAL_FILL_MASS: "Номинал",
+        ASSEMBLY_MASS: "Сборка",
+    }
+    for key, label in labels.items():
+        assert russian[f"component.{DOMAIN}.entity.number.{key}.name"] == label
+
+    icons = await async_get_icons(hass, "entity", {DOMAIN})
+    assert icons[DOMAIN]["number"] == {
+        TARE_MASS: {"default": "mdi:gas-cylinder"},
+        EQUIPMENT_MASS: {"default": "mdi:gauge"},
+        NOMINAL_FILL_MASS: {"default": "mdi:target"},
+        ASSEMBLY_MASS: {"default": "mdi:weight"},
+    }
 
 
 async def test_calculate_from_manual_edits(hass: HomeAssistant) -> None:
