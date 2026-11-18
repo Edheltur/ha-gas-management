@@ -1,0 +1,23 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add CO₂ cylinder",
+        "data": {"name": "Cylinder name"}
+      }
+    },
+    "error": {"empty_name": "Enter a cylinder name."}
+  },
+  "entity": {
+    "number": {
+      "tare_mass": {"name": "Empty cylinder mass"},
+      "equipment_mass": {"name": "Attached equipment mass"},
+      "assembly_mass": {"name": "Current assembly mass"},
+      "nominal_fill_mass": {"name": "Nominal fill mass"}
+    },
+    "sensor": {
+      "gas_remaining": {"name": "Gas remaining"},
+      "fill_level": {"name": "Fill level"}
+    }
+  }
+}

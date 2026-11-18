@@ -1,0 +1,30 @@
+title: Учёт газа
+views:
+  - title: Баллоны
+    path: gas
+    icon: mdi:gas-cylinder
+    cards:
+      - type: vertical-stack
+        cards:
+          - type: entities
+            title: Баллон CO₂
+            show_header_toggle: false
+            entities:
+              - entity: sensor.co2_gas_remaining
+                name: Остаток газа
+              - entity: sensor.co2_fill_level
+                name: Заполнение
+              - entity: number.co2_empty_cylinder_mass
+                name: Масса пустого баллона
+              - entity: number.co2_attached_equipment_mass
+                name: Масса оборудования
+              - entity: number.co2_current_assembly_mass
+                name: Текущая масса сборки
+              - entity: number.co2_nominal_fill_mass
+                name: Номинальная масса заправки
+          - type: history-graph
+            title: История остатка
+            hours_to_show: 48
+            entities:
+              - entity: sensor.co2_gas_remaining
+                name: Остаток газа
