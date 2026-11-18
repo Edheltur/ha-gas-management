@@ -1,5 +1,7 @@
 # Gas Management
 
+[![Открыть Gas Management в Marketplace Home Assistant](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=Edheltur&repository=ha-gas-management&category=integration)
+
 Пользовательская интеграция Home Assistant для ручного учёта остатка CO₂ по массе.
 Каждый баллон добавляется отдельно и получает своё устройство, четыре поля ввода и
 два сенсора.
