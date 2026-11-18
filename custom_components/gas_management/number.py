@@ -7,7 +7,18 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import GasManagementConfigEntry
-from .const import MASS_KEYS, MASS_STEP_KG, MAX_MASS_KG
+from .const import (
+    ASSEMBLY_MASS,
+    EDITABLE_MASS_KEYS,
+    EQUIPMENT_MASS,
+    MASS_STEP_KG,
+    MAX_MASS_KG,
+)
+
+MASS_ICONS = {
+    EQUIPMENT_MASS: "mdi:gauge",
+    ASSEMBLY_MASS: "mdi:weight",
+}
 
 
 async def async_setup_entry(
@@ -15,8 +26,8 @@ async def async_setup_entry(
     entry: GasManagementConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Expose the four manually editable masses."""
-    async_add_entities(CylinderNumber(entry, key) for key in MASS_KEYS)
+    """Expose the two masses that can change after setup."""
+    async_add_entities(CylinderNumber(entry, key) for key in EDITABLE_MASS_KEYS)
 
 
 class CylinderNumber(NumberEntity):
@@ -38,6 +49,8 @@ class CylinderNumber(NumberEntity):
         self._attr_device_info = self._cylinder.device_info
         self._attr_unique_id = f"{entry.entry_id}_{key}"
         self._attr_translation_key = key
+        # Supply the icon on the state for controls that use the weight fallback.
+        self._attr_icon = MASS_ICONS[key]
 
     @property
     def native_value(self) -> float | None:

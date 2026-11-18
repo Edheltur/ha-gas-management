@@ -10,7 +10,6 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import GasManagementConfigEntry
 from .calculation import fill_pct, gas_remaining_g
-from .const import NOMINAL_FILL_MASS
 
 
 async def async_setup_entry(
@@ -71,11 +70,6 @@ class RemainingGasSensor(CylinderSensor):
     def __init__(self, entry: GasManagementConfigEntry) -> None:
         """Set up a remaining mass sensor."""
         super().__init__(entry, gas_remaining_g)
-
-    @callback
-    def _async_mass_changed(self, key: str) -> None:
-        if key != NOMINAL_FILL_MASS:
-            super()._async_mass_changed(key)
 
 
 class FillLevelSensor(CylinderSensor):

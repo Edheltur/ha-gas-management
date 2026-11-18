@@ -7,5 +7,5 @@
   "integration_type": "device",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/Edheltur/ha-gas-management/issues",
-  "version": "0.2"
+  "version": "0.3"
 }

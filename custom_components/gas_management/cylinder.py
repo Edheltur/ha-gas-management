@@ -9,7 +9,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
 
 from .calculation import mass_kg
-from .const import DOMAIN, GAS_CO2, MASS_KEYS
+from .const import DOMAIN, EDITABLE_MASS_KEYS, GAS_CO2
 
 STORAGE_VERSION = 1
 
@@ -22,22 +22,32 @@ def cylinder_store(hass: HomeAssistant, entry_id: str) -> Store[dict[str, float]
 class Cylinder:
     """Track and persist the measurements of one cylinder."""
 
-    def __init__(self, hass: HomeAssistant, entry_id: str, name: str) -> None:
+    def __init__(
+        self, hass: HomeAssistant, entry_id: str, name: str, configured_masses: dict[str, float]
+    ) -> None:
         """Set up entry-scoped identity and storage."""
         self.hass = hass
         self.signal = f"{DOMAIN}.{entry_id}.mass_changed"
         self.device_info = DeviceInfo(identifiers={(DOMAIN, entry_id)}, name=name, model=GAS_CO2)
-        self.masses: dict[str, float] = {}
+        self._configured_masses = configured_masses
+        self._readings: dict[str, float] = {}
         self._store = cylinder_store(hass, entry_id)
         self._lock = Lock()
         self._closed = False
+
+    @property
+    def masses(self) -> dict[str, float]:
+        """Combine configured cylinder masses with the current readings."""
+        return self._configured_masses | self._readings
 
     async def async_load(self) -> None:
         """Restore known valid masses before creating entities."""
         data = await self._store.async_load()
         if isinstance(data, dict):
-            self.masses = {
-                key: value for key in MASS_KEYS if (value := mass_kg(data.get(key))) is not None
+            self._readings = {
+                key: value
+                for key in EDITABLE_MASS_KEYS
+                if (value := mass_kg(data.get(key))) is not None
             }
 
     async def async_set_mass(self, key: str, value: float) -> None:
@@ -49,14 +59,14 @@ class Cylinder:
         async with self._lock:
             if self._closed:
                 raise HomeAssistantError("Cylinder is unloading")
-            if self.masses.get(key) == mass:
+            if self._readings.get(key) == mass:
                 return
-            updated = {**self.masses, key: mass}
+            updated = {**self._readings, key: mass}
             await self._store.async_save(updated)
             # Home Assistant's Store logs certain write errors instead of raising them.
             if await self._store.async_load() != updated:
                 raise HomeAssistantError("Could not save the cylinder measurements")
-            self.masses = updated
+            self._readings = updated
             async_dispatcher_send(self.hass, self.signal, key)
 
     async def async_close(self) -> None:

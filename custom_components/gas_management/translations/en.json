@@ -3,17 +3,26 @@
     "step": {
       "user": {
         "title": "Add CO₂ cylinder",
-        "data": {"name": "Cylinder name"}
+        "data": {
+          "name": "Cylinder name",
+          "tare_mass": "Tare",
+          "nominal_fill_mass": "Nominal fill"
+        },
+        "data_description": {
+          "tare_mass": "The marked empty cylinder weight in kg, without removable equipment.",
+          "nominal_fill_mass": "The marked nominal weight of the gas in kg."
+        }
       }
     },
-    "error": {"empty_name": "Enter a cylinder name."}
+    "error": {
+      "empty_name": "Enter a cylinder name.",
+      "invalid_mass": "Enter a weight from 0.001 to 1000 kg."
+    }
   },
   "entity": {
     "number": {
-      "tare_mass": {"name": "Empty cylinder"},
       "equipment_mass": {"name": "Equipment"},
-      "assembly_mass": {"name": "Assembly"},
-      "nominal_fill_mass": {"name": "Nominal fill"}
+      "assembly_mass": {"name": "Assembly"}
     },
     "sensor": {
       "gas_remaining": {"name": "Gas remaining"},

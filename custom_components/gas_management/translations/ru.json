@@ -3,17 +3,26 @@
     "step": {
       "user": {
         "title": "Добавить баллон CO₂",
-        "data": {"name": "Имя баллона"}
+        "data": {
+          "name": "Имя баллона",
+          "tare_mass": "Тара",
+          "nominal_fill_mass": "Номинальная заправка"
+        },
+        "data_description": {
+          "tare_mass": "Маркировка массы пустого баллона в кг, без съёмной оснастки.",
+          "nominal_fill_mass": "Маркировка номинальной массы газа в кг."
+        }
       }
     },
-    "error": {"empty_name": "Введите имя баллона."}
+    "error": {
+      "empty_name": "Введите имя баллона.",
+      "invalid_mass": "Введите массу от 0,001 до 1000 кг."
+    }
   },
   "entity": {
     "number": {
-      "tare_mass": {"name": "Баллон"},
       "equipment_mass": {"name": "Оснастка"},
-      "assembly_mass": {"name": "Сборка"},
-      "nominal_fill_mass": {"name": "Номинал"}
+      "assembly_mass": {"name": "Сборка"}
     },
     "sensor": {
       "gas_remaining": {"name": "Остаток газа"},

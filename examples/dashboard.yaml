@@ -14,12 +14,8 @@ views:
                 name: Остаток газа
               - entity: sensor.co2_fill_level
                 name: Заполнение
-              - entity: number.co2_empty_cylinder
-                name: Баллон
               - entity: number.co2_equipment
                 name: Оснастка
-              - entity: number.co2_nominal_fill
-                name: Номинал
               - entity: number.co2_assembly
                 name: Сборка
           - type: history-graph

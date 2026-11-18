@@ -4,6 +4,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME, Platform
 from homeassistant.core import HomeAssistant
 
+from .const import CONFIGURED_MASS_KEYS
 from .cylinder import Cylinder, cylinder_store
 
 type GasManagementConfigEntry = ConfigEntry[Cylinder]
@@ -12,7 +13,12 @@ PLATFORMS = (Platform.NUMBER, Platform.SENSOR)
 
 async def async_setup_entry(hass: HomeAssistant, entry: GasManagementConfigEntry) -> bool:
     """Load an individual cylinder."""
-    cylinder = Cylinder(hass, entry.entry_id, entry.data[CONF_NAME])
+    cylinder = Cylinder(
+        hass,
+        entry.entry_id,
+        entry.data[CONF_NAME],
+        {key: entry.data[key] for key in CONFIGURED_MASS_KEYS},
+    )
     await cylinder.async_load()
     entry.runtime_data = cylinder
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
