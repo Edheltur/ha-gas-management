@@ -9,7 +9,7 @@
           "nominal_fill_mass": "Nominal CO₂ mass"
         },
         "data_description": {
-          "name": "The device name shown in Home Assistant. Use a name you recognize, such as “Kitchen CO₂”. Automations use the entity ID.",
+          "name": "The cylinder name shown in the interface. Home Assistant uses it to generate entity IDs.",
           "tare_mass": "Weight of the empty cylinder with its valve, without the regulator or hoses. Check the cylinder documentation or weigh it empty.",
           "nominal_fill_mass": "Weight of the gas at full fill. Check the cylinder documentation or the supplier’s specifications."
         }
@@ -22,8 +22,8 @@
   },
   "entity": {
     "number": {
-      "equipment_mass": {"name": "Equipment"},
-      "assembly_mass": {"name": "Assembly"}
+      "equipment_mass": {"name": "Equipment weight"},
+      "assembly_mass": {"name": "Total weight"}
     },
     "sensor": {
       "gas_remaining": {"name": "Gas remaining"},

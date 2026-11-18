@@ -13,6 +13,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.translation import async_get_translations
 
+from custom_components.gas_management import config_flow
 from custom_components.gas_management.const import (
     ASSEMBLY_MASS,
     DOMAIN,
@@ -79,6 +80,9 @@ async def test_localized_setup_form_with_suggested_masses(hass: HomeAssistant) -
     fields = probatio.to_field_list(form["data_schema"], custom_serializer=cv.custom_serializer)
     fields_by_name = {field["name"]: field for field in fields}
     assert set(fields_by_name) == {CONF_NAME, TARE_MASS, NOMINAL_FILL_MASS}
+    assert fields_by_name[CONF_NAME]["default"] in {
+        name.capitalize() for name in config_flow.DREADNOUGHT_NAMES
+    }
     assert fields_by_name[TARE_MASS]["description"]["suggested_value"] == 8.5
     assert fields_by_name[NOMINAL_FILL_MASS]["description"]["suggested_value"] == 3.0
 
@@ -88,6 +92,33 @@ async def test_localized_setup_form_with_suggested_masses(hass: HomeAssistant) -
         for name in fields_by_name:
             assert translations[f"{prefix}data.{name}"] != name
             assert translations[f"{prefix}data_description.{name}"]
+
+    result = await hass.config_entries.flow.async_configure(
+        form["flow_id"], {CONF_NAME: "Ромашка", TARE_MASS: 8.5, NOMINAL_FILL_MASS: 3.0}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["result"].title == "Ромашка"
+
+
+@pytest.mark.parametrize(
+    ("existing", "expected"),
+    [(["Bjorn"], "Танкред"), (["Бьорн", "Tankred", "Бьорн 2", "Tankred 2"], None)],
+)
+async def test_russian_name_suggestion(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch, existing: list[str], expected: str | None
+) -> None:
+    """Avoid either spelling of an existing name and number names when needed."""
+    monkeypatch.setattr(config_flow, "DREADNOUGHT_NAMES", {"bjorn": "Бьорн", "tankred": "Танкред"})
+    hass.config.language = "ru"
+    for name in existing:
+        await add_cylinder(hass, name)
+    form = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+    fields = probatio.to_field_list(form["data_schema"], custom_serializer=cv.custom_serializer)
+    name = next(field["default"] for field in fields if field["name"] == CONF_NAME)
+    if expected is None:
+        assert name in ("Бьорн 3", "Танкред 3")
+    else:
+        assert name == expected
 
 
 @pytest.mark.parametrize("key", [TARE_MASS, NOMINAL_FILL_MASS])
@@ -115,8 +146,8 @@ async def test_weighing_controls_and_icons(hass: HomeAssistant) -> None:
 
     russian = await async_get_translations(hass, "ru", "entity", {DOMAIN})
     labels = {
-        EQUIPMENT_MASS: "Оснастка",
-        ASSEMBLY_MASS: "Сборка",
+        EQUIPMENT_MASS: "Вес оснастки",
+        ASSEMBLY_MASS: "Общий вес",
     }
     for key, label in labels.items():
         assert russian[f"component.{DOMAIN}.entity.number.{key}.name"] == label

@@ -14,10 +14,10 @@ views:
                 name: Остаток газа
               - entity: sensor.co2_fill_level
                 name: Заполнение
-              - entity: number.co2_equipment
-                name: Оснастка
-              - entity: number.co2_assembly
-                name: Сборка
+              - entity: number.co2_equipment_weight
+                name: Вес оснастки
+              - entity: number.co2_total_weight
+                name: Общий вес
           - type: history-graph
             title: История остатка
             hours_to_show: 48
